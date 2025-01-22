@@ -1,8 +1,8 @@
 pub struct PhysObject{
-    body_name:String,
-    pos: [f64;2],
-    vel: [f64;2],
-    mass: f64,
+    pub body_name:String,
+    pub pos: [f64;2],
+    pub vel: [f64;2],
+    pub mass: f64,
 }
 
 const GRAVITATIONAL_CONSTANT : f64 = 6.6743e-11;
