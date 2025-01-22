@@ -39,36 +39,38 @@ impl PhysObject{
 
 pub fn update_bodies(bodies: &mut [PhysObject], dt: f64){
 
-    for i in 0..bodies.len(){
-        for j in 0..bodies.len(){
-            if i==j{
-                continue;
-            }
+    let forces = get_forces_for_bodies(bodies, dt);
+    apply_forces(bodies, &*forces);
+}
 
-            let (body1, body2) = {
-                let (left, right) = if i < j {
-                    bodies.split_at_mut(j)
-                } else {
-                    bodies.split_at_mut(i)
-                };
+fn get_forces_for_bodies(bodies: &[PhysObject], dt: f64)-> Vec<f64>{
 
-                if i < j {
-                    (&left[i], &mut right[0])
-                } else {
-                    (&right[0], &mut left[j])
-                }
-            };
-
+    let no_bodies = bodies.len();
+    let mut forces = vec![0.0; no_bodies*2];
+    let mut j = 0;
+    for body1 in bodies{
+        for body2 in bodies{
             let force = get_gravitational_force(body1, body2) * dt;
             let mut direction = [
                 body2.pos[0]-body1.pos[0],
                 body2.pos[1]-body1.pos[1]
             ];
             direction = normalize_vector(direction);
-            body2.apply_force([direction[0]*force,direction[1]*force]);
+            forces[2*j]+=force*direction[0];
+            forces[2*j+1]+=force*direction[1];
+            j+=1;
         }
+        j=0;
+    }
+    forces
+}
+
+fn apply_forces(bodies: &mut [PhysObject], forces: &[f64]){
+    for i in 0..bodies.len(){
+        bodies[i].apply_force([forces[2*i],forces[2*i+1]]);
     }
 }
+
 
 
 #[cfg(test)]
