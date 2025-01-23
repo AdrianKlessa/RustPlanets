@@ -44,6 +44,9 @@ pub fn update_bodies(bodies: &mut [PhysObject], dt: f64){
 
     let forces = get_forces_for_bodies(bodies, dt);
     apply_forces(bodies, &*forces);
+    for body in bodies{
+        body.update(dt);
+    }
 }
 
 fn get_forces_for_bodies(bodies: &[PhysObject], dt: f64)-> Vec<f64>{
@@ -60,8 +63,8 @@ fn get_forces_for_bodies(bodies: &[PhysObject], dt: f64)-> Vec<f64>{
 
             let force : f64 = get_gravitational_force(body1, body2) * dt;
             let mut direction = [
-                body2.pos[0]-body1.pos[0],
-                body2.pos[1]-body1.pos[1]
+                body1.pos[0]-body2.pos[0],
+                body1.pos[1]-body2.pos[1]
             ];
 
             direction = normalize_vector(direction);
@@ -163,7 +166,7 @@ mod tests {
         let dt = 0.1;
         let bodies = [obj1, obj2];
         let forces = get_forces_for_bodies(&bodies, dt);
-        let expected_forces = vec![0.,3.5415753e22*dt, 0., -3.5415753e22*dt];
+        let expected_forces = vec![0.,-3.5415753e22*dt, 0., 3.5415753e22*dt];
         assert!((forces[0]-expected_forces[0]).abs() < 1e14);
         assert!((forces[1]-expected_forces[1]).abs() < 1e14);
         assert!((forces[2]-expected_forces[2]).abs() < 1e14);
