@@ -22,6 +22,9 @@ fn vector_length(vector : [f64;2])->f64{
 
 fn normalize_vector(vector : [f64;2])-> [f64;2]{
     let vector_length = vector_length(vector);
+    if vector[0]==0. && vector[1]==0.{
+        return vector;
+    }
     [vector[0]/vector_length, vector[1]/vector_length]
 }
 
@@ -50,11 +53,17 @@ fn get_forces_for_bodies(bodies: &[PhysObject], dt: f64)-> Vec<f64>{
     let mut j = 0;
     for body1 in bodies{
         for body2 in bodies{
-            let force = get_gravitational_force(body1, body2) * dt;
+            if body1.body_name == body2.body_name{
+                j+=1;
+                continue;
+            }
+
+            let force : f64 = get_gravitational_force(body1, body2) * dt;
             let mut direction = [
                 body2.pos[0]-body1.pos[0],
                 body2.pos[1]-body1.pos[1]
             ];
+
             direction = normalize_vector(direction);
             forces[2*j]+=force*direction[0];
             forces[2*j+1]+=force*direction[1];
@@ -136,4 +145,47 @@ mod tests {
         assert!((vector_length3-expected_length3).abs() < 0.01);
     }
 
+    #[test]
+    fn test_get_forces(){
+        let obj1 = PhysObject{
+            body_name: String::from("Earth"),
+            pos: [0.0, 1.495978707e11],
+            vel: [0.0,0.0],
+            mass: 5.9722e24,
+        };
+
+        let obj2 = PhysObject{
+            body_name: String::from("Sun"),
+            pos: [0.0,0.0],
+            vel: [0.0,0.0],
+            mass: 1.988416e30,
+        };
+        let dt = 0.1;
+        let bodies = [obj1, obj2];
+        let forces = get_forces_for_bodies(&bodies, dt);
+        let expected_forces = vec![0.,3.5415753e22*dt, 0., -3.5415753e22*dt];
+        assert!((forces[0]-expected_forces[0]).abs() < 1e14);
+        assert!((forces[1]-expected_forces[1]).abs() < 1e14);
+        assert!((forces[2]-expected_forces[2]).abs() < 1e14);
+        assert!((forces[3]-expected_forces[3]).abs() < 1e14);
+    }
+
+    #[test]
+    fn test_normalize_vector(){
+        let vector1 = [0.0,0.0];
+        let vector2 = [0.0,1.0];
+        let vector3 = [3.0,3.0];
+
+        let normalized1 = normalize_vector(vector1);
+        let normalized2 = normalize_vector(vector2);
+        let normalized3 = normalize_vector(vector3);
+
+        assert!((normalized1[0]- 0.).abs()<0.0001);
+        assert!((normalized1[1]- 0.).abs()<0.0001);
+        assert!((normalized2[0]- 0.).abs()<0.0001);
+        assert!((normalized2[1]- 1.).abs()<0.0001);
+        assert!((normalized3[0]- 1./(2_f64).sqrt()).abs()<0.0001);
+        assert!((normalized3[1]- 1./(2_f64).sqrt()).abs()<0.0001);
+
+    }
 }
