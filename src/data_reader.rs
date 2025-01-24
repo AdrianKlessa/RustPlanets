@@ -1,6 +1,7 @@
-use std::{error::Error, io, process};
+use std::{error::Error};
 use serde::Deserialize;
 use serde::de::{self, Deserializer};
+use crate::physics::PhysObject;
 #[derive(Debug, Deserialize)]
 struct Record {
     #[serde(rename = "Planet")]
@@ -57,12 +58,21 @@ where
     s.parse::<f64>().map_err(de::Error::custom)
 }
 
-pub fn example() -> Result<(), Box<dyn Error>> {
+fn record_to_planet(record : Record)->PhysObject{
+    PhysObject{
+        body_name: record.planet.to_string(),
+        pos: [0.0, record.distance_from_sun*1e9],
+        vel: [record.orbital_velocity*1e3, 0.0],
+        mass: record.mass*1e24,
+    }
+}
+
+pub fn load_planetary_data() -> Result<Vec<PhysObject>, Box<dyn Error>> {
     let mut rdr = csv::Reader::from_path("./data/solar_system_dataset.csv")?;
+    let mut parsed = Vec::new();
     for result in rdr.deserialize(){
         let record: Record = result?;
-        println!("---");
-        println!("{:?}", record);
+        parsed.push(record_to_planet(record));
     }
-    Ok(())
+    Ok(parsed)
 }
