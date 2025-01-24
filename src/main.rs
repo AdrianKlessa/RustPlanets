@@ -1,9 +1,11 @@
 use macroquad::prelude::*;
+use crate::data_reader::example;
 use crate::physics::{update_bodies, PhysObject};
 
 pub mod physics;
+mod data_reader;
 
-fn simulation_to_screen_coordinates(body_coords : [f64;2], screen_center : [f32;2], space_factor : f64, display_size : [f32;2])->[f32;2]{
+fn simulation_to_screen_coordinates(body_coords : [f64;2], screen_center : [f32;2], space_factor : f64, display_size : [f32;2]) ->[f32;2]{
     [
         (body_coords[0]/space_factor) as f32 + (display_size[0]/3.) + screen_center[0],
         (body_coords[1]/space_factor) as f32 + (display_size[1]/3.) + screen_center[1]
@@ -12,7 +14,7 @@ fn simulation_to_screen_coordinates(body_coords : [f64;2], screen_center : [f32;
 
 #[macroquad::main("SolarSystem")]
 async fn main() {
-
+    //println!("{:?}",example().err());
     let dt= 86400.;
     let space_factor = 150e7;
     let mut bodies = Vec::new();
