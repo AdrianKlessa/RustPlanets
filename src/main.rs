@@ -32,7 +32,7 @@ async fn main() {
 
         for body in &bodies{
             let body_screen_coords = simulation_to_screen_coordinates(body.pos, [0.,0.],space_factor,[1920.,1080.]);
-            draw_circle(body_screen_coords[0], body_screen_coords[1], 2., WHITE);
+            draw_circle(body_screen_coords[0], body_screen_coords[1], 5., WHITE);
         }
         update_bodies(& mut bodies, dt);
         next_frame().await
