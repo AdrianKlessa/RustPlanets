@@ -1,9 +1,11 @@
 use macroquad::prelude::*;
 use crate::data_reader::load_planetary_data;
 use crate::physics::{update_bodies, PhysObject};
+use crate::render_config::PLANET_CONFIG;
 
 pub mod physics;
 mod data_reader;
+mod render_config;
 
 fn simulation_to_screen_coordinates(body_coords : [f64;2], screen_center : [f32;2], space_factor : f64, display_size : [f32;2]) ->[f32;2]{
     [
@@ -31,8 +33,11 @@ async fn main() {
         clear_background(BLACK);
 
         for body in &bodies{
+            let draw_config = PLANET_CONFIG.get(&body.body_name as &str);
+            let color = draw_config.unwrap().color;
+            let radius = draw_config.unwrap().radius;
             let body_screen_coords = simulation_to_screen_coordinates(body.pos, [0.,0.],space_factor,[1920.,1080.]);
-            draw_circle(body_screen_coords[0], body_screen_coords[1], 5., WHITE);
+            draw_circle(body_screen_coords[0], body_screen_coords[1], radius, color);
         }
         update_bodies(& mut bodies, dt);
         next_frame().await
