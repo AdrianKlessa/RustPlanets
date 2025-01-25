@@ -8,11 +8,11 @@ pub struct RenderConfigEntry {
 
 pub static PLANET_CONFIG: Map<&str, RenderConfigEntry> = phf_map!{
     "Sun" => RenderConfigEntry{
-        radius: 3.,
+        radius: 10.,
         color: YELLOW
     },
     "Mercury" => RenderConfigEntry{
-        radius: 3.,
+        radius: 1.,
         color: GRAY
     },
     "Venus" => RenderConfigEntry{
@@ -24,24 +24,24 @@ pub static PLANET_CONFIG: Map<&str, RenderConfigEntry> = phf_map!{
         color: SKYBLUE
     },
     "Mars" => RenderConfigEntry{
-        radius: 3.,
+        radius: 2.,
         color: RED
     },
     "Jupiter" => RenderConfigEntry{
-        radius: 3.,
+        radius: 7.,
         color: ORANGE
     },
     "Saturn" => RenderConfigEntry{
-        radius: 3.,
+        radius: 7.,
         color: GOLD
     },
     "Uranus" => RenderConfigEntry{
-        radius: 3.,
-        color: DARKGREEN
+        radius: 5.,
+        color: BLUE
     },
     "Neptune" => RenderConfigEntry{
-        radius: 3.,
-        color: BLUE
+        radius: 5.,
+        color: DARKBLUE
     },
 
 
