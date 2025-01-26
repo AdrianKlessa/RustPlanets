@@ -7,6 +7,8 @@ pub mod physics;
 mod data_reader;
 mod render_config;
 
+const CAMERA_PAN_SPEED : f32 = 20.0;
+
 fn simulation_to_screen_coordinates(body_coords : [f64;2], screen_center : [f32;2], space_factor : f64, display_size : [f32;2]) ->[f32;2]{
     [
         (body_coords[0]/space_factor) as f32 + (display_size[0]/3.) + screen_center[0],
@@ -30,16 +32,34 @@ async fn main() {
     let mut screen_center : [f32;2] = [0f32;2];
 
     loop{
+        screen_center = handle_camera(screen_center);
+        println!("Screen center: {:?}", screen_center);
         clear_background(BLACK);
-
         for body in &bodies{
             let draw_config = PLANET_CONFIG.get(&body.body_name as &str);
             let color = draw_config.unwrap().color;
             let radius = draw_config.unwrap().radius;
-            let body_screen_coords = simulation_to_screen_coordinates(body.pos, [0.,0.],space_factor,[1920.,1080.]);
+            let body_screen_coords = simulation_to_screen_coordinates(body.pos, screen_center, space_factor,[1920.,1080.]);
             draw_circle(body_screen_coords[0], body_screen_coords[1], radius, color);
         }
         update_bodies(& mut bodies, dt);
         next_frame().await
     }
+}
+
+fn handle_camera(screen_center : [f32;2]) -> [f32;2]{
+    let mut new_screen_center = screen_center;
+    if is_key_down(KeyCode::Up) {
+        new_screen_center = [new_screen_center[0], new_screen_center[1]+CAMERA_PAN_SPEED];
+    }
+    if is_key_down(KeyCode::Down) {
+        new_screen_center = [new_screen_center[0], new_screen_center[1]-CAMERA_PAN_SPEED];
+    }
+    if is_key_down(KeyCode::Left) {
+        new_screen_center = [new_screen_center[0]+CAMERA_PAN_SPEED, new_screen_center[1]];
+    }
+    if is_key_down(KeyCode::Right){
+        new_screen_center = [new_screen_center[0]-CAMERA_PAN_SPEED, new_screen_center[1]];
+    }
+    new_screen_center
 }
