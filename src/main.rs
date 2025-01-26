@@ -18,8 +18,8 @@ fn simulation_to_screen_coordinates(body_coords : [f64;2], screen_center : [f32;
 
 #[macroquad::main("SolarSystem")]
 async fn main() {
-    let dt= 86400.;
-    let space_factor = 150e7;
+    let mut dt= 86400.;
+    let mut space_factor = 150e7;
     let mut bodies = load_planetary_data().unwrap();
     let sun = PhysObject{
         body_name: String::from("Sun"),
@@ -33,6 +33,8 @@ async fn main() {
 
     loop{
         screen_center = handle_camera(screen_center);
+        dt = handle_time_scaling_input(dt);
+        space_factor = handle_space_scaling_input(space_factor);
         println!("Screen center: {:?}", screen_center);
         clear_background(BLACK);
         for body in &bodies{
@@ -62,4 +64,24 @@ fn handle_camera(screen_center : [f32;2]) -> [f32;2]{
         new_screen_center = [new_screen_center[0]-CAMERA_PAN_SPEED, new_screen_center[1]];
     }
     new_screen_center
+}
+
+fn handle_time_scaling_input(dt : f64)->f64{
+    if is_key_pressed(KeyCode::Comma){
+        return dt*0.5;
+    }
+    if is_key_pressed(KeyCode::Period){
+        return dt*2.;
+    }
+    dt
+}
+
+fn handle_space_scaling_input(space_factor : f64)->f64{
+    if is_key_pressed(KeyCode::KpAdd){
+        return space_factor*0.5;
+    }
+    if is_key_pressed(KeyCode::KpSubtract){
+        return space_factor*2.;
+    }
+    space_factor
 }
