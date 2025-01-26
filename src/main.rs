@@ -35,7 +35,6 @@ async fn main() {
         screen_center = handle_camera(screen_center);
         dt = handle_time_scaling_input(dt);
         space_factor = handle_space_scaling_input(space_factor);
-        println!("Screen center: {:?}", screen_center);
         clear_background(BLACK);
         for body in &bodies{
             let draw_config = PLANET_CONFIG.get(&body.body_name as &str);
