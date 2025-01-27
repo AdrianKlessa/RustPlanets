@@ -18,7 +18,8 @@ fn simulation_to_screen_coordinates(body_coords : [f64;2], screen_center : [f32;
 
 #[macroquad::main("SolarSystem")]
 async fn main() {
-    let mut dt= 86400.;
+    let dt= 86400.;
+    let mut iterations_per_frame = 1.;
     let mut space_factor = 150e7;
     let mut bodies = load_planetary_data().unwrap();
     let sun = PhysObject{
@@ -33,7 +34,7 @@ async fn main() {
 
     loop{
         screen_center = handle_camera(screen_center);
-        dt = handle_time_scaling_input(dt);
+        iterations_per_frame = handle_time_scaling_input(iterations_per_frame);
         space_factor = handle_space_scaling_input(space_factor);
         clear_background(BLACK);
         for body in &bodies{
@@ -43,7 +44,13 @@ async fn main() {
             let body_screen_coords = simulation_to_screen_coordinates(body.pos, screen_center, space_factor,[1920.,1080.]);
             draw_circle(body_screen_coords[0], body_screen_coords[1], radius, color);
         }
-        update_bodies(& mut bodies, dt);
+        if iterations_per_frame<1.{
+            update_bodies(& mut bodies, dt*iterations_per_frame);
+        }else{
+            for _i in 0..iterations_per_frame.round() as i64{
+                update_bodies(& mut bodies, dt);
+            }
+        }
         next_frame().await
     }
 }
@@ -65,14 +72,14 @@ fn handle_camera(screen_center : [f32;2]) -> [f32;2]{
     new_screen_center
 }
 
-fn handle_time_scaling_input(dt : f64)->f64{
+fn handle_time_scaling_input(iterations_per_frame : f64)->f64{
     if is_key_pressed(KeyCode::Comma){
-        return dt*0.5;
+        return iterations_per_frame*0.5;
     }
     if is_key_pressed(KeyCode::Period){
-        return dt*2.;
+        return iterations_per_frame*2.;
     }
-    dt
+    iterations_per_frame
 }
 
 fn handle_space_scaling_input(space_factor : f64)->f64{
