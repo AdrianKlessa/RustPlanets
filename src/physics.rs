@@ -29,12 +29,12 @@ fn normalize_vector(vector : [f64;2])-> [f64;2]{
 }
 
 impl PhysObject{
-    fn apply_force(&mut self, force : [f64;2]){
-        self.vel[0] += force[0]/self.mass;
-        self.vel[1] += force[1]/self.mass;
+    fn apply_force(&mut self, force : [f64;2], dtime: f64){
+        self.vel[0] += force[0]*dtime/self.mass;
+        self.vel[1] += force[1]*dtime/self.mass;
     }
 
-    fn update(&mut self, dtime : f64){
+    fn update_position(&mut self, dtime : f64){
         self.pos[0] += self.vel[0]*dtime;
         self.pos[1] += self.vel[1]*dtime;
     }
@@ -42,14 +42,16 @@ impl PhysObject{
 
 pub fn update_bodies(bodies: &mut [PhysObject], dt: f64){
 
-    let forces = get_forces_for_bodies(bodies, dt);
-    apply_forces(bodies, &*forces);
-    for body in bodies{
-        body.update(dt);
+    let forces = get_forces_for_bodies(bodies);
+    apply_forces(bodies, &*forces, dt*0.5);
+    for body in &mut *bodies{
+        body.update_position(dt);
     }
+    let forces = get_forces_for_bodies(bodies);
+    apply_forces(bodies, &*forces, dt*0.5);
 }
 
-fn get_forces_for_bodies(bodies: &[PhysObject], dt: f64)-> Vec<f64>{
+fn get_forces_for_bodies(bodies: &[PhysObject])-> Vec<f64>{
 
     let no_bodies = bodies.len();
     let mut forces = vec![0.0; no_bodies*2];
@@ -61,7 +63,7 @@ fn get_forces_for_bodies(bodies: &[PhysObject], dt: f64)-> Vec<f64>{
                 continue;
             }
 
-            let force : f64 = get_gravitational_force(body1, body2) * dt;
+            let force : f64 = get_gravitational_force(body1, body2);
             let mut direction = [
                 body1.pos[0]-body2.pos[0],
                 body1.pos[1]-body2.pos[1]
@@ -77,9 +79,9 @@ fn get_forces_for_bodies(bodies: &[PhysObject], dt: f64)-> Vec<f64>{
     forces
 }
 
-fn apply_forces(bodies: &mut [PhysObject], forces: &[f64]){
+fn apply_forces(bodies: &mut [PhysObject], forces: &[f64], dtime: f64){
     for i in 0..bodies.len(){
-        bodies[i].apply_force([forces[2*i],forces[2*i+1]]);
+        bodies[i].apply_force([forces[2*i],forces[2*i+1]], dtime);
     }
 }
 
@@ -163,14 +165,15 @@ mod tests {
             vel: [0.0,0.0],
             mass: 1.988416e30,
         };
-        let dt = 0.1;
         let bodies = [obj1, obj2];
-        let forces = get_forces_for_bodies(&bodies, dt);
-        let expected_forces = vec![0.,-3.5415753e22*dt, 0., 3.5415753e22*dt];
-        assert!((forces[0]-expected_forces[0]).abs() < 1e14);
-        assert!((forces[1]-expected_forces[1]).abs() < 1e14);
-        assert!((forces[2]-expected_forces[2]).abs() < 1e14);
-        assert!((forces[3]-expected_forces[3]).abs() < 1e14);
+        let forces = get_forces_for_bodies(&bodies);
+        let expected_forces = vec![0.,-3.5415753e22, 0., 3.5415753e22];
+        println!("Forces: {:?}", forces);
+        println!("expected: {:?}", expected_forces);
+        assert!((forces[0]-expected_forces[0]).abs() < 1e15);
+        assert!((forces[1]-expected_forces[1]).abs() < 1e15);
+        assert!((forces[2]-expected_forces[2]).abs() < 1e15);
+        assert!((forces[3]-expected_forces[3]).abs() < 1e15);
     }
 
     #[test]
