@@ -37,6 +37,7 @@ async fn main() {
         iterations_per_frame = handle_time_scaling_input(iterations_per_frame);
         space_factor = handle_space_scaling_input(space_factor);
         clear_background(BLACK);
+        draw_ui(iterations_per_frame);
         for body in &bodies{
             let draw_config = PLANET_CONFIG.get(&body.body_name as &str);
             let color = draw_config.unwrap().color;
@@ -96,4 +97,22 @@ fn handle_space_scaling_input(space_factor : f64)->f64{
         return space_factor*2.;
     }
     space_factor
+}
+
+fn draw_ui(iterations_per_frame : f64){
+    let days_per_day_string = format!("Days per frame: {:.2}", iterations_per_frame);
+    let fps = get_fps();
+    let days_per_second_string = format!("Days per second: {:.2}", iterations_per_frame*(fps as f64));
+    draw_text(
+        days_per_day_string.as_str(),
+        20.,20.,
+        20.,
+        WHITE,
+    );
+    draw_text(
+        days_per_second_string.as_str(),
+        20.,60.,
+        20.,
+        WHITE,
+    );
 }
