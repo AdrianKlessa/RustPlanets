@@ -43,6 +43,12 @@ async fn main() {
             let radius = draw_config.unwrap().radius;
             let body_screen_coords = simulation_to_screen_coordinates(body.pos, screen_center, space_factor,[1920.,1080.]);
             draw_circle(body_screen_coords[0], body_screen_coords[1], radius, color);
+            draw_text(
+                &*body.body_name,
+                body_screen_coords[0]-20., body_screen_coords[1]+60.,
+                20.,
+                WHITE,
+            );
         }
         if iterations_per_frame<1.{
             update_bodies(& mut bodies, dt*iterations_per_frame);
