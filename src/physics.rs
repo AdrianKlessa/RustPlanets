@@ -5,6 +5,13 @@ pub struct PhysObject{
     pub mass: f64,
 }
 
+#[derive(Clone, Copy)]
+pub enum IntegrationAlgorithm{
+    Euler,
+    SymplecticEuler,
+    Leapfrog
+}
+
 const GRAVITATIONAL_CONSTANT : f64 = 6.6743e-11;
 
 pub fn get_gravitational_force(a : &PhysObject, b : &PhysObject) -> f64 {
@@ -40,7 +47,16 @@ impl PhysObject{
     }
 }
 
-pub fn update_bodies(bodies: &mut [PhysObject], dt: f64){
+pub fn update_euler(bodies: &mut [PhysObject], dt: f64){
+
+    let forces = get_forces_for_bodies(bodies);
+    for body in &mut *bodies{
+        body.update_position(dt);
+    }
+    apply_forces(bodies, &*forces, dt);
+}
+
+pub fn update_leapfrog(bodies: &mut [PhysObject], dt: f64){
 
     let forces = get_forces_for_bodies(bodies);
     apply_forces(bodies, &*forces, dt*0.5);
@@ -50,6 +66,16 @@ pub fn update_bodies(bodies: &mut [PhysObject], dt: f64){
     let forces = get_forces_for_bodies(bodies);
     apply_forces(bodies, &*forces, dt*0.5);
 }
+
+pub fn update_symplectic_euler(bodies: &mut [PhysObject], dt: f64){
+
+    let forces = get_forces_for_bodies(bodies);
+    apply_forces(bodies, &*forces, dt);
+    for body in bodies{
+        body.update_position(dt);
+    }
+}
+
 
 fn get_forces_for_bodies(bodies: &[PhysObject])-> Vec<f64>{
 

@@ -1,6 +1,6 @@
 use macroquad::prelude::*;
 use crate::data_reader::load_planetary_data;
-use crate::physics::{update_bodies, PhysObject};
+use crate::physics::{update_euler, update_leapfrog, update_symplectic_euler, IntegrationAlgorithm, PhysObject};
 use crate::render_config::PLANET_CONFIG;
 
 pub mod physics;
@@ -22,6 +22,7 @@ async fn main() {
     let mut iterations_per_frame = 1.;
     let mut space_factor = 150e7;
     let mut bodies = load_planetary_data().unwrap();
+    let mut current_integrator = IntegrationAlgorithm::Leapfrog;
     let sun = PhysObject{
         body_name: String::from("Sun"),
         pos: [0.0,0.0],
@@ -36,8 +37,9 @@ async fn main() {
         screen_center = handle_camera(screen_center);
         iterations_per_frame = handle_time_scaling_input(iterations_per_frame);
         space_factor = handle_space_scaling_input(space_factor);
+        current_integrator = handle_integrator_change(current_integrator);
         clear_background(BLACK);
-        draw_ui(iterations_per_frame);
+        draw_ui(iterations_per_frame, current_integrator);
         for body in &bodies{
             let draw_config = PLANET_CONFIG.get(&body.body_name as &str);
             let color = draw_config.unwrap().color;
@@ -52,10 +54,10 @@ async fn main() {
             );
         }
         if iterations_per_frame<1.{
-            update_bodies(& mut bodies, dt*iterations_per_frame);
+            update_bodies(& mut bodies, dt*iterations_per_frame, current_integrator);
         }else{
             for _i in 0..iterations_per_frame.round() as i64{
-                update_bodies(& mut bodies, dt);
+                update_bodies(& mut bodies, dt, current_integrator);
             }
         }
         next_frame().await
@@ -99,7 +101,7 @@ fn handle_space_scaling_input(space_factor : f64)->f64{
     space_factor
 }
 
-fn draw_ui(iterations_per_frame : f64){
+fn draw_ui(iterations_per_frame : f64, current_integrator : IntegrationAlgorithm){
     let days_per_day_string = format!("Days per frame: {:.2}", iterations_per_frame);
     let fps = get_fps();
     let days_per_second_string = format!("Days per second: {:.2}", iterations_per_frame*(fps as f64));
@@ -115,4 +117,38 @@ fn draw_ui(iterations_per_frame : f64){
         20.,
         WHITE,
     );
+    let integrator_string = {
+        match current_integrator {
+            IntegrationAlgorithm::Leapfrog => "Leapfrog",
+            IntegrationAlgorithm::Euler => "Euler",
+            IntegrationAlgorithm::SymplecticEuler => "Symplectic Euler",
+        }
+    };
+    draw_text(
+        integrator_string,
+        20.,100.,
+        20.,
+        WHITE,
+    );
+}
+
+fn update_bodies(bodies: &mut [PhysObject], dt: f64, integration_algorithm: IntegrationAlgorithm){
+    match integration_algorithm {
+        IntegrationAlgorithm::Euler => update_euler(bodies, dt),
+        IntegrationAlgorithm::SymplecticEuler => update_symplectic_euler(bodies, dt),
+        IntegrationAlgorithm::Leapfrog => update_leapfrog(bodies, dt),
+    }
+}
+
+fn handle_integrator_change(integrator: IntegrationAlgorithm)->IntegrationAlgorithm{
+    if is_key_pressed(KeyCode::Key1){
+        return IntegrationAlgorithm::Leapfrog
+    }
+    if is_key_pressed(KeyCode::Key2){
+        return IntegrationAlgorithm::SymplecticEuler
+    }
+    if is_key_pressed(KeyCode::Key3){
+        return IntegrationAlgorithm::Euler
+    }
+    integrator
 }
